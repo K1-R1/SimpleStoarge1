@@ -1,8 +1,9 @@
 from solcx import compile_standard, install_solc
+import json
 
 with open('./SimpleStorage.sol', 'r') as file:
     simple_storage_file = file.read()
-    print(simple_storage_file)
+    #print(simple_storage_file)
     
 #complile
 install_solc('0.8.0')
@@ -21,4 +22,5 @@ compiled_sol = compile_standard(
     solc_version='0.8.0',
 )
 
-print(compiled_sol)
+with open('compiled_code.json','w') as file:
+    json.dump(compiled_sol, file)
