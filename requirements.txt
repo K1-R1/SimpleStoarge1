@@ -2,3 +2,5 @@ Python 3.10
 py-solc-x
 web3
 python-dotenv
+node.js
+ganache
