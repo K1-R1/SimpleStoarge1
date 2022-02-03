@@ -1,5 +1,10 @@
 from solcx import compile_standard, install_solc
-import json
+from web3 import Web3
+
+import json, os
+
+from dotenv import load_dotenv
+load_dotenv()
 
 with open('./SimpleStorage.sol', 'r') as file:
     simple_storage_file = file.read()
@@ -31,3 +36,38 @@ bytecode = compiled_sol["contracts"]["SimpleStorage.sol"]["SimpleStorage"]["evm"
 
 # get abi
 abi = compiled_sol["contracts"]["SimpleStorage.sol"]["SimpleStorage"]["abi"]
+
+# connecting to ganache
+w3 = Web3(Web3.HTTPProvider('HTTP://127.0.0.1:8545'))
+chain_id = 1337
+my_address = os.getenv('ADDRESS')
+private_key = os.getenv('PRIVATE_KEY')
+
+# create contract instance
+SimpleStoarge = w3.eth.contract(abi=abi, bytecode=bytecode)
+# get latest tx
+nonce = w3.eth.getTransactionCount(my_address)
+
+# build tx
+tx = SimpleStoarge.constructor().buildTransaction({'chainId': chain_id,'gasPrice': w3.eth.gas_price,'from': my_address,'nonce': nonce})
+nonce += 1
+#sign tx
+signed_tx = w3.eth.account.sign_transaction(tx, private_key=private_key)
+# send tx
+tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+print('Contract `SimpleStoarge` successfully deployed')
+
+
+# interact with deployed contract
+simple_storage = w3.eth.contract(address=tx_receipt.contractAddress, abi=abi)
+
+#Initial value of favouriteNumber
+print(f"Initial value of SimpleStoarge's retrive function: {simple_storage.functions.retrieve().call()}")
+store_tx = simple_storage.functions.store(894).buildTransaction({'chainId': chain_id,'gasPrice': w3.eth.gas_price,'from': my_address,'nonce': nonce})
+signed_store_tx = w3.eth.account.sign_transaction(store_tx, private_key=private_key)
+send_signed_store_tx = w3.eth.send_raw_transaction(signed_store_tx.rawTransaction)
+print('Updating value of favouriteNumber')
+store_tx_receipt = w3.eth.wait_for_transaction_receipt(send_signed_store_tx)
+#Updated value of favouriteNumber
+print(f"Updated value of SimpleStoarge's retrive function: {simple_storage.functions.retrieve().call()}")
