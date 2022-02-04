@@ -6,4 +6,4 @@ Interaction with the contract once deployed:
 - Retreive stored values
 - Store mapping of alias to value
 
-The contract is deployed to a ganache test chain, via ganache-cli
+The contract is deployed to the rinkeby test network
